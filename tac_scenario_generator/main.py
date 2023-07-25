@@ -1,106 +1,10 @@
-import json
-import logging
-import os
-import pathlib
-import time
-from datetime import datetime
+from combat_mission.driver import find_and_click_target_text
 
-# TODO: if we stick with easyOCR, we should archive the model weights with this
-# project so that it's reproducible even if EasyOCR changes in the future.
-import easyocr
-import pyautogui
-from thefuzz import process as fuzz_process
+import logging
+
 
 logging.basicConfig(level=logging.DEBUG)
-
 logger = logging.getLogger(__name__)
-
-# TODO: pretty sure this isn't portable, but whatever I can fix that later.
-SCREENSHOTS_DIR = pathlib.Path(os.getcwd()) / 'screenshots'
-
-
-def capture_screen():
-    # Capture the entire screen and return the screenshot image.
-    screenshot = pyautogui.screenshot()
-
-    screenshot_path = SCREENSHOTS_DIR / f'{str(int(datetime.now().timestamp()))}.png'
-    logger.debug(f'Saving screenshot to {screenshot_path}')
-    screenshot.save(screenshot_path)
-
-    return screenshot, screenshot_path
-
-
-def get_bbox_for_text(target_text, image):
-    logger.debug(f'Attempting to find the text "{target_text}" in image.')
-    # Initialize the EasyOCR reader
-    reader = easyocr.Reader(['en'])
-
-    # Perform text detection on the image
-    result = reader.readtext(image)
-
-    # Search for the target_text in the detected text
-    target_bbox = None
-    # phrases will be populated with all the strings found on the page. If the
-    # first pass doesn't find an exact match, then we'll use this phrases list
-    # to find the best phrase that was probably OCR'd wrong.
-    phrases = []
-    all_results = []
-    for detection in result:
-        all_results.append(detection)
-        detected_text, bbox = detection[1], detection[0]
-        phrases.append(detected_text)
-        if target_text in detected_text:
-            target_bbox = bbox
-            logger.debug(f'Found target text "{target_text}" in the image at bbox {target_bbox}.')
-            break
-
-    # if there isn't an exact match, try to find the best match that you can
-    if target_bbox is None:
-        logger.debug(f'Unable to find exact text "{target_text}". Searching for best match.')
-        logger.debug(f'available phrases: {phrases}')
-        best_match_text = fuzz_process.extractOne(target_text, phrases)[0]
-        logger.debug(f'Unable to find perfect match for "{target_text}". Using best match "{best_match_text}" instead.')
-        best_match_index = phrases.index(best_match_text)
-        best_match_detection = result[best_match_index]
-        logger.debug(f'Full bbox info for best match: {best_match_detection}')
-        target_bbox = best_match_detection[0]
-
-    # print(all_results)
-    # with open('easyocr_debug.json', 'w') as json_file:
-    #     json.dump(all_results, json_file)
-
-    return target_bbox
-
-
-def find_center_of_bounding_box(bbox):
-    # bbox should be a list of four points in the format: [[x1, y1], [x2, y2], [x3, y3], [x4, y4]]
-    # We'll assume that bbox is always in the correct format with four points.
-
-    # Calculate the average x-coordinate and y-coordinate
-    center_x = sum(point[0] for point in bbox) // 4
-    center_y = sum(point[1] for point in bbox) // 4
-
-    return center_x, center_y
-
-
-# TODO: note to self: might make sense for CM to pre-calcualte and cache all the text locations.
-def find_and_click_target_text(target_text):
-    # The script currently assumes that the user will navigate to the game
-    # window after initializing the script, to simplify development. We'll want
-    # to replace this with something which automatically maximizes the game in
-    # the future. This sleep provides the user time to do that.
-    print('Script starting. Please navigate to the game now, and wait at least 3 seconds before navigating away.')
-    time.sleep(3)
-
-    screenshot, screenshot_path = capture_screen()
-
-    # TODO: would be nice to use the screenshot, instead of reading the image from disk here. Was having trouble, moved on.
-    target_bbox = get_bbox_for_text(target_text, str(screenshot_path))
-    target_x, target_y = find_center_of_bounding_box(target_bbox)
-    print(f'center of text {target_text} is {target_x}, {target_y}')
-
-    # Send a mouse click on the target text's position
-    pyautogui.moveTo(target_x, target_y)
 
 
 if __name__ == "__main__":
