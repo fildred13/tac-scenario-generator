@@ -16,6 +16,26 @@ from settings import SCREENSHOTS_DIR
 logger = logging.getLogger(__name__)
 
 
+def send_units_to_game(translated_oob):
+    logger.info('Populating {force} units into game engine.')
+    # TODO: switch the the appropriate side and force based on the translated_oob['force']
+
+    # TODO: need to pre-calculate and cache the screen location of all units so
+    # that the find function doesn't get confused when there are units with the
+    # same name present in the "Chosen" section. Or something. Maybe we could
+    # drop everything with an x-left greater than a certain value, based on the
+    # location of the x-left of the word "Chosen".
+
+    for unit in translated_oob['units']:
+        # TODO: in the translated_oob, need to group units by their type so that we can switch unit types. Right now we only support infantry.
+        find_and_click_target_text(unit['type'])
+
+    # click the "OK" button to navigate away from the unit selection screen.
+    logger.info('Population of {force} units complete. Navigating back to main scenario screen.')
+    find_and_click_target_text('OK')
+
+
+
 def capture_screen():
     # Capture the entire screen and return the screenshot image.
     screenshot = pyautogui.screenshot()
@@ -29,9 +49,9 @@ def capture_screen():
 
 def get_bbox_for_text(target_text, image):
     logger.debug(f'Attempting to find the text "{target_text}" in image.')
+    # TODO: share this between function calls
     # Initialize the EasyOCR reader
     reader = easyocr.Reader(['en'])
-
     # Perform text detection on the image
     result = reader.readtext(image)
 
@@ -61,10 +81,6 @@ def get_bbox_for_text(target_text, image):
         best_match_detection = result[best_match_index]
         logger.debug(f'Full bbox info for best match: {best_match_detection}')
         target_bbox = best_match_detection[0]
-
-    # print(all_results)
-    # with open('easyocr_debug.json', 'w') as json_file:
-    #     json.dump(all_results, json_file)
 
     return target_bbox
 
