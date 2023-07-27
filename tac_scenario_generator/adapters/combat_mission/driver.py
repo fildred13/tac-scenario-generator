@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 def send_units_to_game(translated_oob):
     logger.info('Populating {force} units into game engine.')
     # TODO: switch the the appropriate side and force based on the translated_oob['force']
+    # For the current poc, we will assume the user has already navigated to the correct screen
 
     # TODO: need to pre-calculate and cache the screen location of all units so
     # that the find function doesn't get confused when there are units with the
@@ -26,14 +27,27 @@ def send_units_to_game(translated_oob):
     # drop everything with an x-left greater than a certain value, based on the
     # location of the x-left of the word "Chosen".
 
+    current_type_page = 'infantry'
+    unit_button_locations = []
     for unit in translated_oob['units']:
-        # TODO: in the translated_oob, need to group units by their type so that we can switch unit types. Right now we only support infantry.
-        find_and_click_target_text(unit['type'])
+        # Navigate to appropriate page for unit type
+        target_type = unit['type']
+        if target_type != current_type_page:
+            find_and_click_target_text(target_type)
+            current_type_page = target_type
 
+        # Get target unit button coordinates from cache, otherwise find from screen
+        try:
+            target_x, target_y = unit_button_locations[unit['name']]
+        except KeyError:
+            target_x, target_y = find_target_text(unit['name'])
+            unit_button_locations[unit['name']] = (target_x, target_y)
+
+        click_at_location(target_x, target_y)
+            
     # click the "OK" button to navigate away from the unit selection screen.
     logger.info('Population of {force} units complete. Navigating back to main scenario screen.')
     find_and_click_target_text('OK')
-
 
 
 def capture_screen():
@@ -93,18 +107,11 @@ def find_center_of_bounding_box(bbox):
     center_x = sum(point[0] for point in bbox) // 4
     center_y = sum(point[1] for point in bbox) // 4
 
-    return center_x, center_y
+    return (center_x, center_y)
 
 
 # TODO: note to self: might make sense for CM to pre-calcualte and cache all the text locations.
-def find_and_click_target_text(target_text):
-    # The script currently assumes that the user will navigate to the game
-    # window after initializing the script, to simplify development. We'll want
-    # to replace this with something which automatically maximizes the game in
-    # the future. This sleep provides the user time to do that.
-    print('Script starting. Please navigate to the game now, and wait at least 3 seconds before navigating away.')
-    time.sleep(3)
-
+def find_target_text(target_text):
     screenshot, screenshot_path = capture_screen()
 
     # TODO: would be nice to use the screenshot, instead of reading the image from disk here. Was having trouble, moved on.
@@ -112,5 +119,15 @@ def find_and_click_target_text(target_text):
     target_x, target_y = find_center_of_bounding_box(target_bbox)
     print(f'center of text {target_text} is {target_x}, {target_y}')
 
+    return (target_x, target_y)
+
+def click_at_location(target_x, target_y):
+    target_x, target_y = find_target_text(target_text)
     # Send a mouse click on the target text's position
     pyautogui.moveTo(target_x, target_y)
+    pyautogui.click()
+
+
+def find_and_click_target_text(target_text):
+    target_x, target_y = find_target_text(target_text)
+    click_at_location(target_x, target_y)

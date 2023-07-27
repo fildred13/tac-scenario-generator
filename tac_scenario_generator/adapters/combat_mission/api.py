@@ -13,5 +13,3 @@ def populate_troops(oob):
     # For each unit, send the needed clicks to add the units to the scenario.
     logger.info('Populating units into game engine.')
     send_units_to_game(translated_oob)
-    # TODO: this
-
