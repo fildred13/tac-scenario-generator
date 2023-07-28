@@ -7,6 +7,8 @@ def generate_oob(force):
 
     # TODO: actually generate a force for real. For now, this is hardcoded for
     # a Heer force to play with data structures.
+    # TODO: probably need to adjust this data structure (and the translated oobs) to account for multi-force oobs.
+    # TODO: we will need to add the concept of "timing" so that reinforcement waves can be orchestrated.
     oob = {
         "force": force,
         "units": [

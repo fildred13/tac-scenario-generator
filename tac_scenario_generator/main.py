@@ -28,7 +28,6 @@ def main():
 
 
 if __name__ == "__main__":
-    print('#############')
-    print(torch.cuda.is_available())
-
-    #main()
+    if not torch.cuda.is_available():
+        logger.warn('CUDA is not available to Torch. Script may run slowly.')
+    main()
