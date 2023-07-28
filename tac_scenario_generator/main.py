@@ -4,7 +4,6 @@ import time
 from adapters.combat_mission.api import populate_troops
 from oob_generator import generate_oob
 
-
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger('PIL').setLevel(logging.INFO)
 

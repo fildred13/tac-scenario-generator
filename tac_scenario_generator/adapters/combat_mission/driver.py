@@ -10,7 +10,6 @@ from thefuzz import process as fuzz_process
 
 from tac_scenario_generator.settings import SCREENSHOTS_DIR
 
-
 logger = logging.getLogger(__name__)
 
 

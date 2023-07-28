@@ -1,8 +1,9 @@
 import logging
 
-from tac_scenario_generator.adapters.combat_mission.driver import send_units_to_game
-from tac_scenario_generator.adapters.combat_mission.scenario_tools import translate_oob
-
+from tac_scenario_generator.adapters.combat_mission.driver import \
+    send_units_to_game
+from tac_scenario_generator.adapters.combat_mission.scenario_tools import \
+    translate_oob
 
 logger = logging.getLogger(__name__)
 
