@@ -3,6 +3,7 @@ import time
 
 from adapters.combat_mission.api import populate_troops
 from oob_generator import generate_oob
+import torch
 
 logging.basicConfig(level=logging.DEBUG)
 logging.getLogger('PIL').setLevel(logging.INFO)
@@ -27,4 +28,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    print('#############')
+    print(torch.cuda.is_available())
+
+    #main()
