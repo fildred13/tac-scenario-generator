@@ -8,7 +8,7 @@ according to the poetry documentation. Then execute the following command to
 install all project dependencies.
 
 ```bash
-poetry install --with codestyle --sync
+poetry install --with dev,codestyle --sync
 ```
 
 See the poetry documentation for more information about adding and updating
