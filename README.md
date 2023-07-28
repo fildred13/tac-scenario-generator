@@ -3,34 +3,34 @@ Toolset for generating tactical scenarios without the player knowing all the det
 
 ## Development Environment
 
+This project is only tested on Windows, on a client which has a display device,
+due to the fact that it must run against a video game which is also running. At
+present, it is only tested on a Windows machine with a CUDA-capable graphics
+card.
+
 This project uses poetry for dependency management. First, install poetry
 according to the poetry documentation. Then execute the following command to
 install all project dependencies.
 
 ```bash
-poetry install --with codestyle --sync
+poetry install --with dev,codestyle --sync
 ```
 
 See the poetry documentation for more information about adding and updating
 dependencies.
 
 The only other tool which must be installed on the host system is `tox` for
-running unit tests and linting. Install tox, and run the tests and lint with:
+running unit tests and linting. The unit tests and linting must be run manually
+at this time, because we cannot easily set up CI due to the fact that pyautogui
+gets upset if there is no driver to talk to. Install tox, and run the tests and
+lint with:
 
 ```bash
 tox
 ```
 
-At present, you must install torch manually, because EasyOCR requires this and
-for some reason it doesn't install as part of EasyOCR. EasyOCR just links to
-the pytorch docs for isntructions: https://pytorch.org/
-
-Run the script itself like so. Notice that in this example I show what I'm
-actually doing, which is running this through Powershell but using wsl (windows
-subsystem for linux) to make it easy to call. It seems I have to call this from
-windows because the actual WSL doesn't seem to have access to the display to
-interact with it:
+Run the script itself like so.
 
 ```
-wsl poetry run python ./tac_scenario_generator/main.py
+poetry run python ./tac_scenario_generator/main.py
 ```

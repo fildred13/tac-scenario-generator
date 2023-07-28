@@ -1,6 +1,7 @@
 import logging
 import time
 
+import torch
 from adapters.combat_mission.api import populate_troops
 from oob_generator import generate_oob
 
@@ -27,4 +28,6 @@ def main():
 
 
 if __name__ == "__main__":
+    if not torch.cuda.is_available():
+        logger.warn('CUDA is not available to Torch. Script may run slowly.')
     main()
