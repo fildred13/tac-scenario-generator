@@ -14,15 +14,19 @@ easyocr = "^1.7.0"
 Pillow = "^9.5.0"
 torch = { url = "https://download.pytorch.org/whl/cu117/torch-2.0.1%2Bcu117-cp310-cp310-win_amd64.whl" }
 torchvision = { url = "https://download.pytorch.org/whl/cu117/torchvision-0.15.2%2Bcu117-cp310-cp310-win_amd64.whl" }
-thefuzz = "^0.19.0"
+thefuzz = {version = "^0.19.0", extras=["speedup"]}
 simpleaudio = "^1.0.4"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.0"
-tox = "^4.6.4"
+
+[tool.poetry.group.codestyle]
+optional = true
+
+[tool.poetry.group.codestyle.dependencies]
 flake8 = "^6.0.0"
 isort = "^5.12.0"
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"

@@ -1,10 +1,13 @@
 import logging
+import time
 
 from adapters.combat_mission.api import populate_troops
 from oob_generator import generate_oob
 
 
 logging.basicConfig(level=logging.DEBUG)
+logging.getLogger('PIL').setLevel(logging.INFO)
+
 logger = logging.getLogger(__name__)
 
 
@@ -26,5 +29,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-    target_text = "Volksgrenadier Rifle Platoon"
-    find_and_click_target_text(target_text)

@@ -1,23 +1,22 @@
-import json
 import logging
-import os
-import time
 from datetime import datetime
 
 # TODO: if we stick with easyOCR, we should archive the model weights with this
 # project so that it's reproducible even if EasyOCR changes in the future.
 import easyocr
 import pyautogui
+from thefuzz import fuzz
 from thefuzz import process as fuzz_process
 
-from settings import SCREENSHOTS_DIR
+from tac_scenario_generator.settings import SCREENSHOTS_DIR
 
 
 logger = logging.getLogger(__name__)
 
 
 def send_units_to_game(translated_oob):
-    logger.info('Populating {force} units into game engine.')
+    force = translated_oob['force']
+    logger.info(f'Populating {force} units into game engine.')
     # TODO: switch the the appropriate side and force based on the translated_oob['force']
     # For the current poc, we will assume the user has already navigated to the correct screen
 
@@ -25,16 +24,18 @@ def send_units_to_game(translated_oob):
     # that the find function doesn't get confused when there are units with the
     # same name present in the "Chosen" section. Or something. Maybe we could
     # drop everything with an x-left greater than a certain value, based on the
-    # location of the x-left of the word "Chosen".
-
-    current_type_page = 'infantry'
-    unit_button_locations = []
+    # location of the x-left of the word "Chosen". There's definitely a bug in
+    # the current lazy implementation, because you could have a unit type, like
+    # a platoon, appear on the right before it's clicked, if you say added a
+    # company containing that platoon first.
+    current_class_page = 'infantry'
+    unit_button_locations = {}
     for unit in translated_oob['units']:
-        # Navigate to appropriate page for unit type
-        target_type = unit['type']
-        if target_type != current_type_page:
-            find_and_click_target_text(target_type)
-            current_type_page = target_type
+        # Navigate to appropriate page for unit class
+        target_class = unit['class']
+        if target_class != current_class_page:
+            find_and_click_target_text(target_class)
+            current_class_page = target_class
 
         # Get target unit button coordinates from cache, otherwise find from screen
         try:
@@ -44,9 +45,9 @@ def send_units_to_game(translated_oob):
             unit_button_locations[unit['name']] = (target_x, target_y)
 
         click_at_location(target_x, target_y)
-            
+
     # click the "OK" button to navigate away from the unit selection screen.
-    logger.info('Population of {force} units complete. Navigating back to main scenario screen.')
+    logger.info(f'Population of {force} units complete. Navigating back to main scenario screen.')
     find_and_click_target_text('OK')
 
 
@@ -89,7 +90,7 @@ def get_bbox_for_text(target_text, image):
     if target_bbox is None:
         logger.debug(f'Unable to find exact text "{target_text}". Searching for best match.')
         logger.debug(f'available phrases: {phrases}')
-        best_match_text = fuzz_process.extractOne(target_text, phrases)[0]
+        best_match_text = fuzz_process.extractOne(target_text, phrases, scorer=fuzz.ratio)[0]
         logger.debug(f'Unable to find perfect match for "{target_text}". Using best match "{best_match_text}" instead.')
         best_match_index = phrases.index(best_match_text)
         best_match_detection = result[best_match_index]
@@ -114,16 +115,16 @@ def find_center_of_bounding_box(bbox):
 def find_target_text(target_text):
     screenshot, screenshot_path = capture_screen()
 
-    # TODO: would be nice to use the screenshot, instead of reading the image from disk here. Was having trouble, moved on.
+    # TODO: would be nice to use the screenshot, instead of reading the image
+    # from disk here. Was having trouble, moved on.
     target_bbox = get_bbox_for_text(target_text, str(screenshot_path))
     target_x, target_y = find_center_of_bounding_box(target_bbox)
     print(f'center of text {target_text} is {target_x}, {target_y}')
 
     return (target_x, target_y)
 
+
 def click_at_location(target_x, target_y):
-    target_x, target_y = find_target_text(target_text)
-    # Send a mouse click on the target text's position
     pyautogui.moveTo(target_x, target_y)
     pyautogui.click()
 

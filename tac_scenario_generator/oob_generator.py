@@ -11,7 +11,7 @@ def generate_oob(force):
         "force": force,
         "units": [
             {"name": "Rifle Platoon", "class": "infantry", "count": 2},
-            {"name": "MG42 Light Machinegun","class": "support", "count": 1},
+            {"name": "MG42 Light Machinegun", "class": "support", "count": 1},
             {"name": "81mm Mortar", "class": "support", "count": 1},
             {"name": "SPW 250/1 Halftrack", "class": "vehicle", "count": 1}
         ]
