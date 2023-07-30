@@ -681,10 +681,10 @@ files = [
 numpy = [
     {version = ">=1.21.2", markers = "python_version >= \"3.10\""},
     {version = ">=1.21.4", markers = "python_version >= \"3.10\" and platform_system == \"Darwin\""},
+    {version = ">=1.23.5", markers = "python_version >= \"3.11\""},
     {version = ">=1.19.3", markers = "python_version >= \"3.6\" and platform_system == \"Linux\" and platform_machine == \"aarch64\" or python_version >= \"3.9\""},
     {version = ">=1.17.0", markers = "python_version >= \"3.7\""},
     {version = ">=1.17.3", markers = "python_version >= \"3.8\""},
-    {version = ">=1.23.5", markers = "python_version >= \"3.11\""},
 ]
 
 [[package]]
@@ -1656,4 +1656,4 @@ zstd = ["zstandard (>=0.18.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "d206d5721f76f0505c82d26a6ea8d976fc6e3456715ace0490aa235a3f59eeac"
+content-hash = "4d284907a00c57af7b3a358d04aa025c59ae4efbc00ec6bb58e576a902cdbd0b"

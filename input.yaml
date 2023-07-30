@@ -1,0 +1,36 @@
+---
+game: cmak
+forces:
+  Allied:
+    Canadian:
+      on_map:
+        artillery:
+          type: random
+          count: 2
+      reinforce_1:
+        air:
+          type: random
+          count: 2
+  Axis:
+    Italian:
+      on_map:
+        infantry:
+          division: Infantry
+          type: Infantry Company
+        fortifications:
+          type: random
+          count: 2-8
+        artillery:
+          type: Mortar Spotter 81mm
+          chance_per_unit: 20
+        air:
+          type: random
+          chance_per_unit: 2
+        support:
+          type: random
+          count: 4
+          chance_per_unit: 25
+        vehicle:
+          type: random
+          count: 4
+          chance_per_unit: 5
