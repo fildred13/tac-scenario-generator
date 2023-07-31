@@ -1,4 +1,4 @@
-from tac_scenario_generator.adapters.combat_mission.cmak import CMAKAdapter
+from tac_scenario_generator.adapters.combat_mission.adapter import CombatMissionAdapter
 
 
 def get_adapter(game_id):
@@ -6,9 +6,11 @@ def get_adapter(game_id):
     ValueError if the game_id is not recognized.
     """
     adapters = {
-        'cmak': CMAKAdapter
+        'cmbo': CombatMissionAdapter,
+        'cmbb': CombatMissionAdapter,
+        'cmak': CombatMissionAdapter
     }
     try:
-        return adapters[game_id]
+        return adapters[game_id](game_id)
     except KeyError:
         raise ValueError(f'Unrecognized game_id {game_id}. Must be one of {adapters.keys()}')

@@ -34,15 +34,11 @@ def main():
     # read the input yaml into memory.
     # TODO: nasty hack to read the input from a hardcoded location. works for now.
     project_directory = Path(__file__).resolve().parent.parent
-    with open(project_directory / 'input.yaml', 'r') as f:
+    with open(project_directory / 'scenario_config.yaml', 'r') as f:
         run_config = yaml.safe_load(f)
 
-    # determine the game we are operating on
-    game = run_config['game']
-
-    # load the appropriate adapter class
-    adapter_class = get_adapter(game)
-    adapter = adapter_class()
+    # load adapter class for the selected game
+    adapter = get_adapter(run_config['game_id'])
 
     # call the generate_and_populate() method
     adapter.generate_and_populate(run_config)

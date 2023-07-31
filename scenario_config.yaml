@@ -1,6 +1,8 @@
 ---
-game: cmak
-forces:
+game_id: cmak
+year: 1943
+month: july
+armies:
   Allied:
     Canadian:
       on_map:

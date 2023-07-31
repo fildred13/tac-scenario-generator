@@ -37,7 +37,7 @@ Mission, and then running the following command:
 poetry run python ./tac_scenario_generator/main.py
 ```
 
-It will read the input file, generate a force list for each side (which gets
+It will read the scenario_config.yaml, generate a force list for each side (which gets
 output as a debug artifact), ask you to navigate to the unit selection screen,
 and then asks you to wait while it enters the selected forces. It will navigate
 back to the scenario screen after it is complete. At present, there isn't

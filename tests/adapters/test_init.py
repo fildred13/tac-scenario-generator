@@ -1,12 +1,12 @@
 import pytest
 
 from tac_scenario_generator.adapters import get_adapter
-from tac_scenario_generator.adapters.combat_mission.cmak import CMAKAdapter
+from tac_scenario_generator.adapters.combat_mission.adapter import CombatMissionAdapter
 
 
 def test_get_adapter_happy_case():
     adapter = get_adapter('cmak')
-    assert adapter is CMAKAdapter
+    assert isinstance(adapter, CombatMissionAdapter)
 
 
 @pytest.mark.parametrize("game_id", [
