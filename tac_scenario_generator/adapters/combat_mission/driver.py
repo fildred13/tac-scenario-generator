@@ -9,8 +9,9 @@ import pyautogui
 from thefuzz import fuzz
 from thefuzz import process as fuzz_process
 
+from tac_scenario_generator.adapters.combat_mission.errors import \
+    ScreenStateError
 from tac_scenario_generator.settings import SCREENSHOTS_DIR
-from tac_scenario_generator.adapters.combat_mission.errors import ScreenStateError
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +27,50 @@ class CombatMissionDriver():
         self._current_screen = Screen.SCENARIO_EDITOR
         self._game_id = game_id
 
-    def go_to_unit_editor(self):
+    def populate_oob(self, oob):
+        """Given an OOB as prepared by the adapter's generate_oob(), populate the units for
+        the oob into the editor. Presumes that the screen is already navigated
+        to the main scenario editor screen.
+        """
+        logger.info(f'Populating {oob["army"]} OOB')
+        self._go_to_unit_editor()
+
+        # Select correct army
+        if oob['army'] == 'Allied':
+            self.click_text('Axis')
+        elif oob['army'] == 'Axis':
+            pass
+        else:
+            raise ValueError(f'Army must be either "Allied" or "Axis". Got {oob["army"]}.')
+
+        for nation, waves in oob['nations'].items():
+            nation_label_text = 'FORCE' if self._game_id == 'cmbo' else 'Nation'
+            self._click_below_label(nation_label_text)
+            self.click_text(nation)
+
+            for wave, unit_types in waves.items():
+                wave_label_text = 'LOCATION' if self._game_id == 'cmbo' else 'Location'
+                self._click_below_label(wave_label_text)
+                self.click_text(wave)
+
+                for unit_type, units in unit_types.items():
+                    if unit_type == 'Artillery' or unit_type == 'Air':
+                        unit_type_label_text = 'Artillery' if self._game_id == 'cmbo' else 'Artillery/Air'
+                    else:
+                        unit_type_label_text = unit_type
+                    self.click_text(unit_type_label_text)
+
+                    for unit in units:
+                        self.click_text(unit['name'])
+
+        self._go_to_scenario_editor()
+        logger.info(f'Finished populating {oob["army"]} OOB')
+
+    def _click_below_label(self, label_text):
+        x, y, bbox = self.find_text(label_text)
+        self.click_at_location(x, y + self._get_bbox_height(bbox))
+
+    def _go_to_unit_editor(self):
         if self._current_screen is not Screen.SCENARIO_EDITOR:
             raise ScreenStateError(
                 'Driver does not yet support navigating to Unit Editor screen except '
@@ -35,57 +79,20 @@ class CombatMissionDriver():
         if self._game_id == 'cmbo':
             text = 'UNITS'
         else:
-            text = 'UNIT'  #EasyOCR doesn't merge "UNIT EDITOR", so we just target the top, unique word.
-        self.click_target_text(text)
+            text = 'UNIT'  # EasyOCR doesn't merge "UNIT EDITOR", so we just target the top, unique word.
+        self.click_text(text)
         self._current_screen = Screen.UNIT_EDITOR
 
-    def go_to_scenario_editor(self):
+    def _go_to_scenario_editor(self):
         if self._current_screen is not Screen.UNIT_EDITOR:
             raise ScreenStateError(
                 'Driver does not yet support navigating to Scenario Editor screen except '
                 'from Unit Editor screen. Current screen is {current_screen.name}.'
             )
-        self.click_target_text('OK')
+        self.click_text('OK')
         self._current_screen = Screen.SCENARIO_EDITOR
 
     # TODO: reconsider all of the below functions, and get them above this line or delete them
-
-    def send_units_to_game(self, translated_oob):
-        force = translated_oob['force']
-        logger.info(f'Populating {force} units into game engine.')
-        # TODO: switch the the appropriate side and force based on the translated_oob['force']
-        # For the current poc, we will assume the user has already navigated to the correct screen
-
-        # TODO: need to pre-calculate and cache the screen location of all units so
-        # that the find function doesn't get confused when there are units with the
-        # same name present in the "Chosen" section. Or something. Maybe we could
-        # drop everything with an x-left greater than a certain value, based on the
-        # location of the x-left of the word "Chosen". There's definitely a bug in
-        # the current lazy implementation, because you could have a unit type, like
-        # a platoon, appear on the right before it's clicked, if you say added a
-        # company containing that platoon first.
-        current_class_page = 'infantry'
-        unit_button_locations = {}
-        for unit in translated_oob['units']:
-            # Navigate to appropriate page for unit class
-            target_class = unit['class']
-            if target_class != current_class_page:
-                click_target_text(target_class)
-                current_class_page = target_class
-
-            # Get target unit button coordinates from cache, otherwise find from screen
-            try:
-                target_x, target_y = unit_button_locations[unit['name']]
-            except KeyError:
-                target_x, target_y = find_target_text(unit['name'])
-                unit_button_locations[unit['name']] = (target_x, target_y)
-
-            click_at_location(target_x, target_y)
-
-        # click the "OK" button to navigate away from the unit selection screen.
-        logger.info(f'Population of {force} units complete. Navigating back to main scenario screen.')
-        click_target_text('OK')
-
 
     def capture_screen(self):
         # Capture the entire screen and return the screenshot image.
@@ -96,7 +103,6 @@ class CombatMissionDriver():
         screenshot.save(screenshot_path)
 
         return screenshot, screenshot_path
-
 
     def get_bbox_for_text(self, target_text, image):
         logger.debug(f'Attempting to find the text "{target_text}" in image.')
@@ -147,23 +153,26 @@ class CombatMissionDriver():
 
         return (center_x, center_y)
 
+    def _get_bbox_height(self, bbox):
+        return max(point[1] for point in bbox) - min(point[1] for point in bbox)
+
     # TODO: note to self: might make sense to pre-calcualte and cache all the text locations.
-    def find_target_text(self, target_text):
+    def find_text(self, text):
         screenshot, screenshot_path = self.capture_screen()
 
         # TODO: would be nice to use the screenshot, instead of reading the image
         # from disk here. Was having trouble, moved on.
-        target_bbox = self.get_bbox_for_text(target_text, str(screenshot_path))
-        target_x, target_y = self._find_center_of_bounding_box(target_bbox)
+        bbox = self.get_bbox_for_text(text, str(screenshot_path))
+        x, y = self._find_center_of_bounding_box(bbox)
 
-        return (target_x, target_y)
+        return (x, y, bbox)
 
     def click_at_location(self, target_x, target_y):
         pyautogui.moveTo(target_x, target_y)
         pyautogui.click()
 
-    def click_target_text(self, target_text):
-        target_x, target_y = self.find_target_text(target_text)
+    def click_text(self, target_text):
+        target_x, target_y, _ = self.find_text(target_text)
         self.click_at_location(target_x, target_y)
 
 

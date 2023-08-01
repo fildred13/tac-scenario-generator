@@ -1,4 +1,5 @@
-from tac_scenario_generator.adapters.combat_mission.adapter import CombatMissionAdapter
+from tac_scenario_generator.adapters.combat_mission.adapter import \
+    CombatMissionAdapter
 
 
 def get_adapter(game_id):

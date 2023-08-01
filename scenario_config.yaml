@@ -5,34 +5,38 @@ month: july
 armies:
   Allied:
     Canadian:
-      on_map:
-        artillery:
-          type: random
-          count: 2
-      reinforce_1:
-        air:
-          type: random
-          count: 2
+      On Map:
+        Artillery:
+          - unit_name: random
+            count: 2
+      Reinforce 1:
+        Air:
+          - unit_name: random
+            count: 2
+        Artillery:
+          - unit_name: random
+            count: 1
   Axis:
     Italian:
-      on_map:
-        infantry:
-          division: Infantry
-          type: Infantry Company
-        fortifications:
-          type: random
-          count: 2-8
-        artillery:
-          type: Mortar Spotter 81mm
-          chance_per_unit: 20
-        air:
-          type: random
-          chance_per_unit: 2
-        support:
-          type: random
-          count: 4
-          chance_per_unit: 25
-        vehicle:
-          type: random
-          count: 4
-          chance_per_unit: 5
+      On Map:
+        Infantry:
+          - division: Infantry
+            unit_name: Infantry Company
+        Fortification:
+          - unit_name: random
+            count_min: 2
+            count_max: 8
+        Artillery:
+          - unit_name: Mortar Spotter 81mm
+            chance_per_unit: 20
+        Air:
+          - unit_name: random
+            chance_per_unit: 2
+        Support:
+          - unit_name: random
+            count: 4
+            chance_per_unit: 25
+        Vehicle:
+          - unit_name: random
+            count: 4
+            chance_per_unit: 5
