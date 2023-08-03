@@ -16,7 +16,9 @@ logger = logging.getLogger(__name__)
 # represent "infinite rarity". i.e., that the unit is not available.
 INFINITE_RARITY_VALUE = 999
 
-infinite_defaultdict = lambda: defaultdict(infinite_defaultdict)
+
+def infinite_defaultdict():
+    return defaultdict(infinite_defaultdict)
 
 
 class CombatMissionAdapter:
@@ -35,9 +37,9 @@ class CombatMissionAdapter:
         manifest, and implement that manifest into the scenario editor.
         Presumes that the user has already navigated to the scenario editor.
         """
-        # TODO: add region
         self.year = scenario_config['year']
         self.month = scenario_config['month']
+        self.region = scenario_config['region']
         army_configs = scenario_config.get('armies')
 
         allied_oob, axis_oob = self.generate_oobs(army_configs)
@@ -59,9 +61,10 @@ class CombatMissionAdapter:
             'nations': {
                 'Canadian': {
                     'On Map': {
-                        'Support': [
-                            {name: 'Mortar 81mm'}
-                        ]
+                        'Mechanized':
+                            'Support': [
+                                {name: 'Mortar 81mm'}
+                            ]
                     }
                 }
             }
@@ -69,25 +72,24 @@ class CombatMissionAdapter:
         """
         logger.info(f'Generating {army} OOB from this config: {config}')
 
-        oob = {
-            'army': army,
-            'nations': {}
-        }
+        oob = {'army': army, 'nations': {}}
+
         for nation, waves in config.items():
-            oob['nations'][nation] = {}
-            for wave, wave_unit_types in waves.items():
-                oob['nations'][nation][wave] = {}
-                for unit_type, unit_configs in wave_unit_types.items():
-                    oob['nations'][nation][wave][unit_type] = []
-                    for unit_config in unit_configs:
-                        units = self._generate_units(
-                            army=army, nation=nation, unit_type=unit_type, **unit_config
-                        )
-                        oob['nations'][nation][wave][unit_type].extend(units)
+            nation_index = oob['nations'][nation] = {}
+            for wave, wave_divisions in waves.items():
+                wave_index = nation_index[wave] = {}
+                for division, unit_types in wave_divisions.items():
+                    division_index = wave_index[division] = {}
+                    for unit_type, unit_configs in unit_types.items():
+                        unit_type_index = division_index[unit_type] = []
+                        for unit_config in unit_configs:
+                            units = self._generate_units(
+                                army=army, nation=nation, division=division, unit_type=unit_type, **unit_config
+                            )
+                            unit_type_index.extend(units)
                     # TODO: could sort the units within each unit type to
                     # minimize the amount of division/fitness/etc. juggling
 
-        # TODO: don't forget to output the oob as a debug artifact
         debug_path = DEBUG_DIR / f'{army}_oob.json'
         with open(debug_path, 'w') as f:
             json.dump(oob, f, indent=4)
@@ -121,7 +123,7 @@ class CombatMissionAdapter:
             nation,
             unit_type,
             unit_name,
-            division=None,
+            division,
             count=1,
             count_min=None,
             count_max=None,
@@ -142,8 +144,8 @@ class CombatMissionAdapter:
             type. Does not guarantee that those units will be equally
             armed/fit/etc.
 
-        division (str): division name. in CMAK and CMBB, some units must be
-            found be navigating to the correct division.
+        division (str): division name. In CMBO, there are no divisions, so all
+            units are presumed to be in the "NoDivision" division.
 
         chance (int): Percent chance out of 100 that the entire unit group is
             present. This allows you to generate a group of units of a certain
@@ -168,7 +170,6 @@ class CombatMissionAdapter:
         _count = self._get_unit_count(
             count=count, count_min=count_min, count_max=count_max, chance_per_unit=chance_per_unit
         )
-        logger.debug(f'_count: {_count}')
 
         for i in range(0, _count):
             # If all the units are supposed to be the same and we've generated
@@ -190,10 +191,7 @@ class CombatMissionAdapter:
         force_data = self._force_data[self._game_id][nation][unit_type][division]
         # open the appropriate force_data file based on game, army, nation, unit type and division.
         if force_data == {}:
-            if division:
-                file_name = f'{nation}_{unit_type}_{division}.csv'
-            else:
-                file_name = f'{nation}_{unit_type}.csv'
+            file_name = f'{nation}_{division}_{unit_type}.csv'
             file_name.replace(' ', '_').lower()
 
             force_data = []
@@ -207,15 +205,17 @@ class CombatMissionAdapter:
 
         return force_data
 
-    # TODO: CMAK and CMBB have the concept of "region", which will also need to
-    # be accounted for here, and in the force data files.
     def _generate_unit(self, army, nation, division, unit_type, unit_name):
         """Generates a single unit in oob format. See _generate_units for parameter descriptions."""
         if unit_name == 'random':
             force_data = self._get_force_data(nation=nation, unit_type=unit_type, division=division)
-            logger.debug(f'force data: {force_data}')
-            rarity_key = f'{self.month}_{self.year}_rarity'
+
+            rarity_key = f'{self.region}_{self.month}_{self.year}_rarity'
             force_data = [i for i in force_data if i[rarity_key] != INFINITE_RARITY_VALUE]
+            if unit_type == 'Vehicle':
+                # Removes the special case of assault boats, which are just too weird to deal with
+                force_data = [i for i in force_data if i['unit'] != 'Assault Boat']
+
             unit_names = [unit['unit'] for unit in force_data]
             weights = [int(100 / ((100 + int(unit[rarity_key])) / 100)) for unit in force_data]
             _unit_name = random.choices(unit_names, weights=weights)[0]

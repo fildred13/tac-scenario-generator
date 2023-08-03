@@ -2,41 +2,43 @@
 game_id: cmak
 year: 1943
 month: july
+region: italy
 armies:
   Allied:
     Canadian:
       On Map:
-        Artillery:
-          - unit_name: random
-            count: 2
+        Infantry:
+          Artillery:
+            - unit_name: random
+              count: 2
       Reinforce 1:
-        Air:
-          - unit_name: random
-            count: 2
-        Artillery:
-          - unit_name: random
-            count: 1
+        Infantry:
+          Air:
+            - unit_name: random
+              count: 2
+          Artillery:
+            - unit_name: random
   Axis:
     Italian:
       On Map:
         Infantry:
-          - division: Infantry
-            unit_name: Infantry Company
-        Fortification:
-          - unit_name: random
-            count_min: 2
-            count_max: 8
-        Artillery:
-          - unit_name: Mortar Spotter 81mm
-            chance_per_unit: 20
-        Air:
-          - unit_name: random
-            chance_per_unit: 2
-        Support:
-          - unit_name: random
-            count: 4
-            chance_per_unit: 25
-        Vehicle:
-          - unit_name: random
-            count: 4
-            chance_per_unit: 5
+          Infantry:
+            - unit_name: Infantry Company
+          Fortification:
+            - unit_name: random
+              count_min: 2
+              count_max: 8
+          Artillery:
+            - unit_name: Mortar Spotter 81mm
+              chance_per_unit: 20
+          Air:
+            - unit_name: random
+              chance_per_unit: 2
+          Support:
+            - unit_name: random
+              count: 4
+              chance_per_unit: 25
+          Vehicle:
+            - unit_name: random
+              count: 4
+              chance_per_unit: 5
