@@ -8,16 +8,16 @@ armies:
     Canadian:
       On Map:
         Infantry:
-          Artillery:
-            - unit_name: random
-              count: 2
-      Reinforce 1:
-        Infantry:
+          Infantry:
+            - unit_name: Rifle Company
           Air:
             - unit_name: random
+              chance_per_unit: 20
               count: 2
           Artillery:
             - unit_name: random
+              chance_per_unit: 30
+              count: 2
   Axis:
     Italian:
       On Map:
@@ -42,3 +42,11 @@ armies:
             - unit_name: random
               count: 4
               chance_per_unit: 5
+      Reinforce 1:
+        Infanrty:
+          Armor:
+            - unit_name: random
+              count: 4
+              chance_per_unit: 30
+              chance: 30
+              all_same: True
