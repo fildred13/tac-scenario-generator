@@ -9,5 +9,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Prototype functions to generate a force and send it to combat mission: beyond overlord
+- Added framework to support all Combat Mission first generation games.
+- Prototype functions to generate a force and send it to combat mission: beyond overlord.
 - Basic project structure.
